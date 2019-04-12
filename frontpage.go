@@ -3,6 +3,8 @@ package frontpage
 import (
 	"fmt"
 
+	"github.com/StevenZack/openurl"
+
 	"github.com/StevenZack/fasthttp"
 	"github.com/StevenZack/tools/strToolkit"
 )
@@ -15,5 +17,6 @@ func Run(str string) error {
 		cx.WriteString(str)
 	})
 	fmt.Println("listened on http://localhost:" + port)
+	openurl.Open("http://localhost:" + port)
 	return r.ListenAndServe(":" + port)
 }

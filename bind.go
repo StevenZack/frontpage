@@ -71,7 +71,8 @@ func (f *FrontPage) Eval(s string) {
 }
 
 func (f *FrontPage) Invoke(fn string, args ...interface{}) {
-	slice := []interface{}{"invoke", fn, args}
+	slice := []interface{}{"invoke", fn}
+	slice = append(slice, args...)
 	b, e := json.Marshal(slice)
 	if e != nil {
 		fmt.Println(`Invoke.marshal error :`, e)

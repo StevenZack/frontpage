@@ -12,11 +12,13 @@ ws.onmessage = function (e) {
             eval(slice[1]);
             break;
         case 'invoke':
+            tmp_args=slice;
             var strToInvoke = slice[1] + '(';
             for (var i = 2; i < slice.length; i++) {
-                strToInvoke = strToInvoke + '"' + slice[i] + '",';
+                strToInvoke+='tmp_args['+i.toString()+'],'
             }
             strToInvoke += ')';
+            console.log('invoking:'+strToInvoke)
             eval(strToInvoke);
             break;
     }

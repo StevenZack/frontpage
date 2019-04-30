@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/StevenZack/pubsub"
+
 	"github.com/StevenZack/tools/refToolkit"
 )
 
@@ -56,4 +58,24 @@ func transformFn(i interface{}) Fn {
 		fn.InsType = append(fn.InsType, inType)
 	}
 	return fn
+}
+
+func (f *FrontPage) Eval(s string) {
+	slice := []string{"eval", s}
+	b, e := json.Marshal(slice)
+	if e != nil {
+		fmt.Println(`eval.marshal error :`, e)
+		return
+	}
+	pubsub.Pub(chanID, string(b))
+}
+
+func (f *FrontPage) Invoke(fn string, args ...interface{}) {
+	slice := []interface{}{"invoke", fn, args}
+	b, e := json.Marshal(slice)
+	if e != nil {
+		fmt.Println(`Invoke.marshal error :`, e)
+		return
+	}
+	pubsub.Pub(chanID, string(b))
 }

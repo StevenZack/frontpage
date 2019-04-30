@@ -10,6 +10,6 @@ ws.onclose=function(e){
 }
 
 bridge=new Object();
-bridge.send=function(msg){
-    ws.send(msg);
+bridge.{{.FnName}}=function({{range .Ins}} {{.}}, {{end}}){
+    var 
 }

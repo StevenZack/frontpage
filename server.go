@@ -19,13 +19,12 @@ const (
 	chanID = "frontpage"
 )
 
-type FrontPage struct {
-	Router *fasthttp.Router
-	Port   string
-}
-
 func Run(str string) error {
 	return New(str).Run()
+}
+
+func RunBrowser(str string) error {
+	return New(str).RunBrowser()
 }
 
 func New(str string) *FrontPage {
@@ -35,20 +34,24 @@ func New(str string) *FrontPage {
 		cx.SetHtmlHeader()
 		cx.WriteString(str)
 	})
-	r.HandleFunc("/ws", ws)
-	r.HandleFunc("/var.js", varjs)
-	fp := &FrontPage{Router: r, Port: port}
+	fp := &FrontPage{
+		Router: r,
+		Port:   port,
+		fnMap:  make(map[string]Fn),
+	}
+	r.HandleFunc("/ws", fp.ws)
+	r.HandleFunc("/var.js", fp.varjs)
 	return fp
 }
 
 func (f *FrontPage) Run() error {
 	fmt.Println("listened on http://localhost:" + f.Port)
-	openurl.Open("http://localhost:" + f.Port)
+	openurl.OpenApp("http://localhost:" + f.Port)
 	return f.Router.ListenAndServe(":" + f.Port)
 }
 
-func (f *FrontPage) RunApp() error {
+func (f *FrontPage) RunBrowser() error {
 	fmt.Println("listened on http://localhost:" + f.Port)
-	openurl.OpenApp("http://localhost:" + f.Port)
+	openurl.Open("http://localhost:" + f.Port)
 	return f.Router.ListenAndServe(":" + f.Port)
 }

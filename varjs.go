@@ -1,11 +1,20 @@
 package frontpage
 
 import (
-	"github.com/StevenZack/fasthttp"
+	"fmt"
+	"text/template"
+
 	"github.com/StevenZack/frontpage/views"
+
+	"github.com/StevenZack/fasthttp"
 )
 
-func varjs(cx *fasthttp.RequestCtx) {
+func (fp *FrontPage)varjs(cx *fasthttp.RequestCtx) {
 	cx.SetJsHeader()
-	cx.WriteString(views.Str_var)
+	t, e := template.New("varjs").Parse(views.Str_var)
+	if e != nil {
+		fmt.Println(`parse error :`, e)
+		return
+	}
+	t.Execute(cx, fp.fnMap)
 }

@@ -10,6 +10,16 @@ ws.onclose=function(e){
 }
 
 bridge=new Object();
-bridge.{{.FnName}}=function({{range .Ins}} {{.}}, {{end}}){
-    var 
+{{range $key, $value := .}}
+{{with $value}}
+{{.FnName}}=function({{range .Ins}} {{.}}, {{end}}){
+    var args=[
+        '{{.FnName}}',
+        {{range .Ins}}
+        {{.}},
+        {{end}}
+    ];
+    ws.send(JSON.stringify(args))
 }
+{{end}}
+{{end}}

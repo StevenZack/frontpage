@@ -9,17 +9,21 @@ ws.onclose=function(e){
     console.log('ws closed')
 }
 
-bridge=new Object();
 {{range $key, $value := .}}
 {{with $value}}
 {{.FnName}}=function({{range .Ins}} {{.}}, {{end}}){
     var args=[
         '{{.FnName}}',
         {{range .Ins}}
-        {{.}},
-        {{end}}
+        {{.}},{{end}}
     ];
-    ws.send(JSON.stringify(args))
+    for (var i=0;i<args.length;i++){
+        if (args[i]==null){
+            throw 'invoke function : "{{.FnName}}" failed: invalid args';
+        }
+    }
+    var str=JSON.stringify(args);
+    ws.send(str);
 }
 {{end}}
 {{end}}

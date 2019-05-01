@@ -11,6 +11,9 @@ Create a main.go
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/StevenZack/frontpage"
 )
 
@@ -21,14 +24,45 @@ func main() {
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Document</title>
-        <script src="/var.js"></script>
+		<title>Document</title>
+		<script src="/var.js"></script>
+		<script>
+			function showJSAlert(s){
+				alert(s)
+			}
+		</script>
 	</head>
 	<body>
-		<input type="button" name="show" id="show" value="show">
+		<input type="button" value="goprint" onclick="goprint('call Go from js')">
 	</body>
 	</html>`)
+	fp.BindFunc(goprint)
+	go func() {
+		time.Sleep(time.Second * 2)
+		fp.Invoke("showJSAlert", "call js function from Go")
+	}()
 	fp.Run()
 }
+
+func goprint(s string) {
+	fmt.Println(s)
+}
+
 ```
-Run
+RUn
+```shell
+go run main.go
+```
+
+![screenshot](/res/get_started.png)
+
+# How it works
+
+1.Create a local HTTP server with random port
+
+2.Bind Go Functions
+
+3.Launch your browser, If you installed Chrome, we'll use app mode (No address bar)
+
+4.Connect Javascript and Go by WebSocket
+

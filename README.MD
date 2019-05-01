@@ -1,4 +1,4 @@
-# FrontPage : Simple GUI Framework for Go
+# FrontPage : A browser front page for Go
 
 # Quick Start
 

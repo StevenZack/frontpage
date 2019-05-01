@@ -15,10 +15,6 @@ var (
 	upgrader = websocket.FastHTTPUpgrader{}
 )
 
-const (
-	chanID = "frontpage"
-)
-
 func Run(str string) error {
 	return New(str).Run()
 }
@@ -37,6 +33,7 @@ func New(str string) *FrontPage {
 	fp := &FrontPage{
 		Router: r,
 		Port:   port,
+		chanID: "frontpage/" + strToolkit.NewToken(),
 		fnMap:  make(map[string]Fn),
 	}
 	r.HandleFunc("/ws", fp.ws)

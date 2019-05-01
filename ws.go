@@ -34,7 +34,7 @@ func (fp *FrontPage) ws(cx *fasthttp.RequestCtx) {
 				fp.handleMsg(b)
 			}
 		}()
-		ps.Sub(chanID, func(v interface{}) {
+		ps.Sub(fp.chanID, func(v interface{}) {
 			if s, ok := v.(string); ok {
 				c.WriteMessage(websocket.TextMessage, []byte(s))
 			} else {

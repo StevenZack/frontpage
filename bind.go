@@ -27,9 +27,10 @@ func (fp *FrontPage) handleMsg(b []byte) {
 	v.Call(in)
 }
 
-func (fp *FrontPage) BindFunc(f interface{}) {
+func (fp *FrontPage) BindFunc(f interface{}) *FrontPage {
 	fn := transformFn(f)
 	fp.fnMap[fn.FnName] = fn
+	return fp
 }
 
 func transformValue(arg, inType string) reflect.Value {
@@ -60,23 +61,25 @@ func transformFn(i interface{}) Fn {
 	return fn
 }
 
-func (f *FrontPage) Eval(s string) {
+func (f *FrontPage) Eval(s string) *FrontPage {
 	slice := []string{"eval", s}
 	b, e := json.Marshal(slice)
 	if e != nil {
 		fmt.Println(`eval.marshal error :`, e)
-		return
+		return f
 	}
-	pubsub.Pub(chanID, string(b))
+	pubsub.Pub(f.chanID, string(b))
+	return f
 }
 
-func (f *FrontPage) Invoke(fn string, args ...interface{}) {
+func (f *FrontPage) Invoke(fn string, args ...interface{}) *FrontPage {
 	slice := []interface{}{"invoke", fn}
 	slice = append(slice, args...)
 	b, e := json.Marshal(slice)
 	if e != nil {
 		fmt.Println(`Invoke.marshal error :`, e)
-		return
+		return f
 	}
-	pubsub.Pub(chanID, string(b))
+	pubsub.Pub(f.chanID, string(b))
+	return f
 }

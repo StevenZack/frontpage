@@ -27,10 +27,8 @@ func (fp *FrontPage) ws(cx *fasthttp.RequestCtx) {
 			for {
 				_, b, e := c.ReadMessage()
 				if e != nil {
-					fmt.Println("read err:", e)
 					return
 				}
-				fmt.Println("got ws msg:", string(b))
 				fp.handleMsg(b)
 			}
 		}()

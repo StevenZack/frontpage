@@ -23,7 +23,6 @@ func (fp *FrontPage) handleMsg(b []byte) {
 		inValue := transformValue(fmt.Sprint(args[j]), fn.InsType[j-1])
 		in = append(in, inValue)
 	}
-	fmt.Println("v.call ...:", in)
 	v.Call(in)
 }
 

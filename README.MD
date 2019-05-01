@@ -49,7 +49,7 @@ func goprint(s string) {
 }
 
 ```
-RUn
+Run
 ```shell
 go run main.go
 ```

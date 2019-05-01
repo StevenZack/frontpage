@@ -1,6 +1,6 @@
 # FrontPage : A cross-platform front page for Go
 
-# FUCK GUI ! JUST LAUNCH YOUR BROWSER
+"FUCK GUI ! JUST LAUNCH YOUR BROWSER"
 
 # Quick Start
 

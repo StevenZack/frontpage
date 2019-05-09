@@ -50,5 +50,18 @@ func (f *FrontPage) Run() error {
 func (f *FrontPage) RunBrowser() error {
 	fmt.Println("listened on http://localhost:" + f.Port)
 	openurl.Open("http://localhost:" + f.Port)
+	defer func() {
+		f.isRunning = false
+	}()
+	f.isRunning = true
 	return f.Router.ListenAndServe(":" + f.Port)
+}
+
+func (f *FrontPage) Shutdown() {
+	f.Eval("window.close()")
+	f.Router.GetServer().Shutdown()
+}
+
+func (f *FrontPage) IsRunning() bool {
+	return f.isRunning
 }

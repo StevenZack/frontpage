@@ -8,5 +8,6 @@ type FrontPage struct {
 	chanID                       string
 	DisableExitWhenAllPageClosed bool
 	wsCounter                    int
+	isRunning                    bool
 	fnMap                        map[string]Fn
 }

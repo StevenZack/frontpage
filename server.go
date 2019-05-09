@@ -40,26 +40,44 @@ func New(str string) *FrontPage {
 	r.HandleFunc("/var.js", fp.varjs)
 	return fp
 }
-
-func (f *FrontPage) Run() error {
-	fmt.Println("listened on http://localhost:" + f.Port)
-	openurl.OpenApp("http://localhost:" + f.Port)
-	return f.Router.ListenAndServe(":" + f.Port)
-}
-
-func (f *FrontPage) RunBrowser() error {
-	fmt.Println("listened on http://localhost:" + f.Port)
-	openurl.Open("http://localhost:" + f.Port)
+func (f *FrontPage) run() error {
 	defer func() {
 		f.isRunning = false
 	}()
 	f.isRunning = true
 	return f.Router.ListenAndServe(":" + f.Port)
 }
+func (f *FrontPage) Run() error {
+	fmt.Println("listened on http://localhost:" + f.Port)
+	f.Open()
+	return f.run()
+}
+
+func (f *FrontPage) RunBrowser() error {
+	fmt.Println("listened on http://localhost:" + f.Port)
+	f.OpenBrowser()
+	return f.run()
+}
+
+func (f *FrontPage) Start() {
+	go f.Run()
+}
+
+func (f *FrontPage) StartBrowser() {
+	go f.RunBrowser()
+}
+
+func (f *FrontPage) Open() {
+	openurl.OpenApp("http://localhost:" + f.Port)
+}
+
+func (f *FrontPage) OpenBrowser() {
+	openurl.Open("http://localhost:" + f.Port)
+}
 
 func (f *FrontPage) Shutdown() {
 	f.Eval("window.close()")
-	f.Router.GetServer().Shutdown()
+	go f.Router.GetServer().Shutdown()
 }
 
 func (f *FrontPage) IsRunning() bool {

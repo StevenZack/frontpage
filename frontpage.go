@@ -10,4 +10,5 @@ type FrontPage struct {
 	wsCounter                    int
 	isRunning                    bool
 	fnMap                        map[string]Fn
+	fnOpen                       func(string)
 }

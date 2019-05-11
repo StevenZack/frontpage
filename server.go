@@ -59,6 +59,10 @@ func (f *FrontPage) RunBrowser() error {
 	return f.run()
 }
 
+func (f *FrontPage) SetOpenFn(fn func(string)) {
+	f.fnOpen = fn
+}
+
 func (f *FrontPage) Start() {
 	go f.Run()
 }
@@ -68,10 +72,18 @@ func (f *FrontPage) StartBrowser() {
 }
 
 func (f *FrontPage) Open() {
+	if f.fnOpen != nil {
+		f.fnOpen("http://localhost:" + f.Port)
+		return
+	}
 	openurl.OpenApp("http://localhost:" + f.Port)
 }
 
 func (f *FrontPage) OpenBrowser() {
+	if f.fnOpen != nil {
+		f.fnOpen("http://localhost:" + f.Port)
+		return
+	}
 	openurl.Open("http://localhost:" + f.Port)
 }
 

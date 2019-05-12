@@ -1,4 +1,4 @@
-ws = new WebSocket('ws://'+location.href.split('/')[2] + 'ws');
+ws = new WebSocket('ws://'+location.href.split('/')[2] + '/ws');
 ws.onopen = function (e) {
     console.log('ws open')
 }

@@ -11,4 +11,9 @@ type FrontPage struct {
 	isRunning                    bool
 	fnMap                        map[string]Fn
 	fnOpen                       func(string)
+	verbose                      bool
+}
+
+func (f *FrontPage) SetVerbose(b bool) {
+	f.verbose = b
 }

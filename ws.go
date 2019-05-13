@@ -29,7 +29,7 @@ func (fp *FrontPage) ws(cx *fasthttp.RequestCtx) {
 				if e != nil {
 					return
 				}
-				fp.handleMsg(b)
+				go fp.handleMsg(b)
 			}
 		}()
 		ps.Sub(fp.chanID, func(v interface{}) {

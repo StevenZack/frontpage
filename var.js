@@ -22,7 +22,8 @@ ws.onmessage = function (e) {
     }
 }
 ws.onclose = function (e) {
-    console.log('ws closed')
+    console.log('ws closed');
+    window.close();
 }
 
 {{range $key, $value := .}}

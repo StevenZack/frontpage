@@ -9,7 +9,15 @@ import (
 	"github.com/StevenZack/fasthttp"
 )
 
-func (fp *FrontPage)varjs(cx *fasthttp.RequestCtx) {
+func Run(str string) error {
+	return New(str).Run()
+}
+
+func RunBrowser(str string) error {
+	return New(str).RunBrowser()
+}
+
+func (fp *FrontPage) varjs(cx *fasthttp.RequestCtx) {
 	cx.SetJsHeader()
 	t, e := template.New("varjs").Parse(views.Str_var)
 	if e != nil {

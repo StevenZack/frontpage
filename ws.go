@@ -18,6 +18,7 @@ func (fp *FrontPage) ws(cx *fasthttp.RequestCtx) {
 			defer ps.UnSub()
 			defer func() {
 				fp.wsCounter--
+				time.Sleep(time.Second * 3)
 				if fp.wsCounter < 1 && !fp.DisableExitWhenAllPageClosed {
 					time.Sleep(time.Second)
 					fp.Router.GetServer().Shutdown()

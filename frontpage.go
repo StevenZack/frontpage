@@ -57,6 +57,11 @@ func (f *FrontPage) SetVerbose(b bool) {
 
 func (f *FrontPage) HandleHTML(url, s string) {
 	f.Router.HandleFunc(url, func(cx *fasthttp.RequestCtx) {
+		s, e := util.AddHead(s, `<script src="/var.js" type="text/javascript"></script>`)
+		if e != nil {
+			cx.Error(e.Error(), fasthttp.StatusBadRequest)
+			return
+		}
 		cx.SetHtmlHeader()
 		cx.WriteString(s)
 	})

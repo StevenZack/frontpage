@@ -1,146 +1,71 @@
 package frontpage
 
 import (
-	"fmt"
+	"text/template"
 
-	"github.com/StevenZack/frontpage/util"
+	"github.com/StevenZack/openurl"
+
+	"github.com/StevenZack/frontpage/views"
 
 	"github.com/StevenZack/fasthttp"
-	"github.com/StevenZack/openurl"
-	"github.com/StevenZack/tools/strToolkit"
-	"github.com/StevenZack/websocket"
+	"github.com/StevenZack/frontpage/util"
 )
 
 type FrontPage struct {
-	Router                       *fasthttp.Router
-	Port                         string
-	chanID                       string
-	DisableExitWhenAllPageClosed bool
-	wsCounter                    int
-	isRunning                    bool
-	fnMap                        map[string]Fn
-	fnOpen                       func(string)
-	verbose                      bool
+	r    *fasthttp.Router
+	vars *Vars
 }
 
-var (
-	upgrader = websocket.FastHTTPUpgrader{}
-)
-
-func New(str string) *FrontPage {
-	port := strToolkit.RandomPort()
-	r := fasthttp.NewRouter()
-	r.HandleFunc("/", func(cx *fasthttp.RequestCtx) {
-		s, e := util.AddHead(str, `<script src="/var.js" type="text/javascript"></script>`)
-		if e != nil {
-			cx.Error(e.Error(), fasthttp.StatusBadRequest)
-			return
-		}
-		cx.SetHtmlHeader()
-		cx.WriteString(s)
-	})
+func New(html string) *FrontPage {
 	fp := &FrontPage{
-		Router:  r,
-		Port:    port,
-		chanID:  "frontpage/" + strToolkit.NewToken(),
-		fnMap:   make(map[string]Fn),
-		verbose: true,
+		r:    fasthttp.NewRouter(),
+		vars: NewVars(),
 	}
-	r.HandleFunc("/ws", fp.ws)
-	r.HandleFunc("/var.js", fp.varjs)
+	fp.HandleFunc("/var.js", func(cx *fasthttp.RequestCtx) {
+		cx.SetJsHeader()
+		t := template.New("var.js")
+		t.Parse(views.Str_var)
+		t.Execute(cx, fp.vars)
+	})
+	fp.HandleHtml("/", html)
 	return fp
 }
 
-func (f *FrontPage) SetVerbose(b bool) {
-	f.verbose = b
-}
-
-func (f *FrontPage) HandleHTML(url, s string) {
-	f.Router.HandleFunc(url, func(cx *fasthttp.RequestCtx) {
-		s, e := util.AddHead(s, `<script src="/var.js" type="text/javascript"></script>`)
+func (f *FrontPage) HandleHtml(path, html string) {
+	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
+		s, e := util.AddHead(html, `<script src="/var.js" type="text/javascript"></script>`)
 		if e != nil {
 			cx.Error(e.Error(), fasthttp.StatusBadRequest)
 			return
 		}
-		cx.SetHtmlHeader()
-		cx.WriteString(s)
+		cx.WriteHTML(s)
 	})
 }
 
-func (f *FrontPage) HandleFunc(url string, fn func(cx *fasthttp.RequestCtx)) {
-	f.Router.HandleFunc(url, fn)
-}
-
-func (f *FrontPage) HandleCSS(url string, css string) {
-	f.Router.HandleFunc(url, func(cx *fasthttp.RequestCtx) {
-		cx.SetCssHeader()
-		cx.WriteString(css)
-	})
-}
-
-func (f *FrontPage) HandleJS(url string, js string) {
-	f.Router.HandleFunc(url, func(cx *fasthttp.RequestCtx) {
+func (f *FrontPage) HandleJs(path, js string) {
+	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
 		cx.SetJsHeader()
 		cx.WriteString(js)
 	})
 }
 
-func (f *FrontPage) run() error {
-	defer func() {
-		f.isRunning = false
-	}()
-	f.isRunning = true
-	return f.Router.ListenAndServe(":" + f.Port)
+func (f *FrontPage) HandleCss(path, css string) {
+	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
+		cx.SetCssHeader()
+		cx.WriteString(css)
+	})
 }
+
+func (f *FrontPage) HandleFunc(path string, handler func(cx *fasthttp.RequestCtx)) {
+	f.r.HandleFunc(path, handler)
+}
+
 func (f *FrontPage) Run() error {
-	if f.verbose {
-		fmt.Println("listened on http://localhost:" + f.Port)
-	}
-	f.Open()
-	return f.run()
+	openurl.OpenApp("http://" + f.vars.Addr)
+	return f.r.ListenAndServe(f.vars.Addr)
 }
 
 func (f *FrontPage) RunBrowser() error {
-	if f.verbose {
-		fmt.Println("listened on http://localhost:" + f.Port)
-	}
-	f.OpenBrowser()
-	return f.run()
-}
-
-func (f *FrontPage) SetOpenFn(fn func(string)) {
-	f.fnOpen = fn
-}
-
-func (f *FrontPage) Start() {
-	go f.Run()
-}
-
-func (f *FrontPage) StartBrowser() {
-	go f.RunBrowser()
-}
-
-func (f *FrontPage) Open() {
-	if f.fnOpen != nil {
-		f.fnOpen("http://localhost:" + f.Port)
-		return
-	}
-	openurl.OpenApp("http://localhost:" + f.Port)
-}
-
-func (f *FrontPage) OpenBrowser() {
-	if f.fnOpen != nil {
-		f.fnOpen("http://localhost:" + f.Port)
-		return
-	}
-	openurl.Open("http://localhost:" + f.Port)
-}
-
-func (f *FrontPage) Shutdown() {
-	f.Eval("window.close()")
-	go f.Router.GetServer().Shutdown()
-}
-
-func (f *FrontPage) IsRunning() bool {
-	return f.isRunning
+	openurl.Open("http://" + f.vars.Addr)
+	return f.r.ListenAndServe(f.vars.Addr)
 }

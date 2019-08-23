@@ -15,22 +15,28 @@ type FrontPage struct {
 	r        *fasthttp.Router
 	vars     *Vars
 	WsServer *WsServer
+	binder   *binder
 }
 
 func New(html string) *FrontPage {
 	fp := &FrontPage{
-		r:    fasthttp.NewRouter(),
-		vars: NewVars(),
+		r:      fasthttp.NewRouter(),
+		vars:   NewVars(),
+		binder: newBinder(),
 	}
 	fp.WsServer = NewWsServer(fp.r.GetServer().Shutdown)
-	fp.HandleFunc("/var.js", func(cx *fasthttp.RequestCtx) {
+
+	// handlers
+	fp.HandleFunc("/fp/ws", fp.WsServer.ws)
+	fp.HandleFunc("/fp/var.js", func(cx *fasthttp.RequestCtx) {
 		cx.SetJsHeader()
 		t := template.New("var.js")
 		t.Parse(views.Str_var)
 		t.Execute(cx, fp.vars)
 	})
+	fp.HandleFunc("/fp/call/:funcName", fp.binder.handleCall)
 	fp.HandleHtml("/", html)
-	fp.HandleFunc("/ws", fp.WsServer.ws)
+
 	return fp
 }
 
@@ -71,4 +77,8 @@ func (f *FrontPage) Run() error {
 func (f *FrontPage) RunBrowser() error {
 	openurl.Open("http://" + f.vars.Addr)
 	return f.r.ListenAndServe(f.vars.Addr)
+}
+
+func (f *FrontPage) Bind(v interface{}) {
+	f.binder.bind(v)
 }

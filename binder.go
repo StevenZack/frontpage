@@ -11,12 +11,14 @@ import (
 )
 
 type binder struct {
-	fns map[string]*Func
+	fns  map[string]*Func
+	vars *Vars
 }
 
-func newBinder() *binder {
+func newBinder(vars *Vars) *binder {
 	return &binder{
-		fns: make(map[string]*Func),
+		fns:  make(map[string]*Func),
+		vars: vars,
 	}
 }
 
@@ -36,6 +38,7 @@ func (b *binder) bind(v interface{}) {
 	}
 
 	b.fns[name] = fn
+	b.vars.Funcs = append(b.vars.Funcs, *fn)
 }
 func (b *binder) handleCall(cx *fasthttp.RequestCtx) {
 	funcName := cx.GetPathParam("funcName")

@@ -22,8 +22,8 @@ func New(html string) *FrontPage {
 	fp := &FrontPage{
 		r:      fasthttp.NewRouter(),
 		vars:   NewVars(),
-		binder: newBinder(),
 	}
+	fp.binder=newBinder(fp.vars)
 	fp.WsServer = NewWsServer(fp.r.GetServer().Shutdown)
 
 	// handlers

@@ -5,12 +5,15 @@ import (
 	"errors"
 	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 
 	"github.com/StevenZack/frontpage/util"
 )
 
 type Func struct {
 	Name    string
+	Args    []string
 	i       interface{}
 	inTypes []reflect.Type
 }
@@ -25,10 +28,12 @@ func NewFunc(i interface{}) (*Func, error) {
 		return nil, errors.New("NewFunc(): i is not a function")
 	}
 
-	fn.Name = runtime.FuncForPC(v.Pointer()).Name()
+	names := strings.Split(runtime.FuncForPC(v.Pointer()).Name(), ".")
+	fn.Name = names[len(names)-1]
 
 	for index := 0; index < t.NumIn(); index++ {
 		itype := t.In(index)
+		fn.Args = append(fn.Args, "arg_"+strconv.Itoa(index))
 		fn.inTypes = append(fn.inTypes, itype)
 	}
 	return fn, nil

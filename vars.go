@@ -7,7 +7,8 @@ import (
 )
 
 type Vars struct {
-	Addr string
+	Addr  string
+	Funcs []Func
 }
 
 func NewVars() *Vars {

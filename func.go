@@ -52,7 +52,7 @@ func (f *Func) ParseIn(body string) ([]reflect.Value, error) {
 	vs := []reflect.Value{}
 	for index, intype := range f.inTypes {
 		ptr := reflect.New(intype)
-		e := json.Unmarshal([]byte(strs[index]), ptr)
+		e := json.Unmarshal([]byte(strs[index]), ptr.Interface())
 		if e != nil {
 			return nil, e
 		}

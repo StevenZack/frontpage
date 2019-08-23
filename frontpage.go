@@ -20,10 +20,10 @@ type FrontPage struct {
 
 func New(html string) *FrontPage {
 	fp := &FrontPage{
-		r:      fasthttp.NewRouter(),
-		vars:   NewVars(),
+		r:    fasthttp.NewRouter(),
+		vars: NewVars(),
 	}
-	fp.binder=newBinder(fp.vars)
+	fp.binder = newBinder(fp.vars)
 	fp.WsServer = NewWsServer(fp.r.GetServer().Shutdown)
 
 	// handlers
@@ -42,7 +42,7 @@ func New(html string) *FrontPage {
 
 func (f *FrontPage) HandleHtml(path, html string) {
 	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
-		s, e := util.AddHead(html, `<script src="/var.js" type="text/javascript"></script>`)
+		s, e := util.AddHead(html, `<script src="/fp/var.js" type="text/javascript"></script>`)
 		if e != nil {
 			cx.Error(e.Error(), fasthttp.StatusBadRequest)
 			return

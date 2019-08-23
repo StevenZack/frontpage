@@ -1,9 +1,8 @@
 package frontpage
 
 import (
+	"encoding/json"
 	"reflect"
-
-	"github.com/StevenZack/frontpage/util"
 
 	"github.com/StevenZack/tools/refToolkit"
 
@@ -60,12 +59,35 @@ func (b *binder) handleCall(cx *fasthttp.RequestCtx) {
 	}
 
 	out := reflect.ValueOf(fn.i).Call(in)
-	str, e := util.RefVsToJson(out)
+	if len(out) == 0 {
+		cx.WriteString("")
+		return
+	}
+
+	e = checkError(out[len(out)-1])
+	if e != nil {
+		cx.Error(e.Error(), fasthttp.StatusBadRequest)
+		return
+	}
+
+	rp, e := json.Marshal(out[0].Interface())
 	if e != nil {
 		cx.Error(e.Error(), fasthttp.StatusBadRequest)
 		return
 	}
 
 	cx.SetJsonHeader()
-	cx.WriteString(str)
+	cx.Write(rp)
+}
+
+func checkError(v reflect.Value) error {
+	t := v.Type()
+	if t.Name() == "error" {
+		e := v.Interface()
+		if e == nil {
+			return nil
+		}
+		return e.(error)
+	}
+	return nil
 }

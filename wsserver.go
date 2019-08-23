@@ -83,3 +83,7 @@ func (w *WsServer) shutdownIfNeed() {
 func (w *WsServer) handleMsg(b []byte) {
 
 }
+
+func (w *WsServer) pub(s string) {
+	pubsub.Pub(w.ChanID, s)
+}

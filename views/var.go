@@ -8,6 +8,8 @@ function connectWs(){
         console.log('ws open');
     };
     ws.onmessage=function(e){
+        var s=e.data;
+        eval(s);
     };
     ws.onclose=function(e){
         console.log('ws closed');

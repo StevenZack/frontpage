@@ -38,10 +38,10 @@ func main() {
 		<input type="button" value="goprint" onclick="goprint('call Go from js')">
 	</body>
 	</html>`)
-	fp.BindFunc(goprint)
+	fp.Bind(goprint)
 	go func() {
 		time.Sleep(time.Second * 2)
-		fp.Invoke("showJSAlert", "call js function from Go")
+		fp.Eval("showJSAlert('call js function from Go')")
 	}()
 	fp.Run()
 }

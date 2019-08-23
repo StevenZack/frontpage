@@ -82,3 +82,7 @@ func (f *FrontPage) RunBrowser() error {
 func (f *FrontPage) Bind(v interface{}) {
 	f.binder.bind(v)
 }
+
+func (f *FrontPage) Eval(s string) {
+	f.WsServer.pub(s)
+}

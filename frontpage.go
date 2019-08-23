@@ -86,3 +86,7 @@ func (f *FrontPage) Bind(v interface{}) {
 func (f *FrontPage) Eval(s string) {
 	f.WsServer.pub(s)
 }
+
+func (f *FrontPage) Router() *fasthttp.Router {
+	return f.r
+}

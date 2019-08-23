@@ -12,8 +12,9 @@ import (
 )
 
 type FrontPage struct {
-	r    *fasthttp.Router
-	vars *Vars
+	r        *fasthttp.Router
+	vars     *Vars
+	WsServer *WsServer
 }
 
 func New(html string) *FrontPage {
@@ -21,6 +22,7 @@ func New(html string) *FrontPage {
 		r:    fasthttp.NewRouter(),
 		vars: NewVars(),
 	}
+	fp.WsServer = NewWsServer(fp.r.GetServer().Shutdown)
 	fp.HandleFunc("/var.js", func(cx *fasthttp.RequestCtx) {
 		cx.SetJsHeader()
 		t := template.New("var.js")
@@ -28,6 +30,7 @@ func New(html string) *FrontPage {
 		t.Execute(cx, fp.vars)
 	})
 	fp.HandleHtml("/", html)
+	fp.HandleFunc("/ws", fp.WsServer.ws)
 	return fp
 }
 

@@ -1,6 +1,7 @@
 package frontpage
 
 import (
+	"fmt"
 	"text/template"
 
 	"github.com/StevenZack/openurl"
@@ -51,6 +52,17 @@ func (f *FrontPage) HandleHtml(path, html string) {
 	})
 }
 
+func (f *FrontPage) HandleHtmlFunc(path string, fn func(cx *fasthttp.RequestCtx) string) {
+	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
+		s, e := util.AddHead(fn(cx), `<script src="/fp/var.js" type="text/javascript"></script>`)
+		if e != nil {
+			cx.Error(e.Error(), fasthttp.StatusBadRequest)
+			return
+		}
+		cx.WriteHTML(s)
+	})
+}
+
 func (f *FrontPage) HandleJs(path, js string) {
 	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
 		cx.SetJsHeader()
@@ -71,12 +83,17 @@ func (f *FrontPage) HandleFunc(path string, handler func(cx *fasthttp.RequestCtx
 
 func (f *FrontPage) Run() error {
 	openurl.OpenApp("http://" + f.vars.Addr)
+	return f.run()
+}
+
+func (f *FrontPage) run() error {
+	fmt.Println("Listened on http://" + f.vars.Addr)
 	return f.r.ListenAndServe(f.vars.Addr)
 }
 
 func (f *FrontPage) RunBrowser() error {
 	openurl.Open("http://" + f.vars.Addr)
-	return f.r.ListenAndServe(f.vars.Addr)
+	return f.run()
 }
 
 func (f *FrontPage) Bind(v interface{}) {

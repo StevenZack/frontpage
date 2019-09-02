@@ -28,7 +28,7 @@ function {{.Name}}({{range .Args}}{{.}},{{end}}){
     ];
     xhr.send(JSON.stringify(body));
     if (xhr.status!=200){
-        throw new Exception(xhr.responseText);
+        throw xhr.responseText;
     }
     var obj=JSON.parse(xhr.responseText);
     return obj;

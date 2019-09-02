@@ -52,6 +52,11 @@ func (f *FrontPage) HandleHtml(path, html string) {
 	})
 }
 
+func AddVarsJs(html string) (string, error) {
+	s, e := util.AddHead(html, `<script src="/fp/var.js" type="text/javascript"></script>`)
+	return s, e
+}
+
 func (f *FrontPage) HandleHtmlFunc(path string, fn func(cx *fasthttp.RequestCtx) string) {
 	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
 		s, e := util.AddHead(fn(cx), `<script src="/fp/var.js" type="text/javascript"></script>`)

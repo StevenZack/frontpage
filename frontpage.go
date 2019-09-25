@@ -2,53 +2,56 @@ package frontpage
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
 	"text/template"
 
-	"github.com/StevenZack/openurl"
-
+	"github.com/StevenZack/mux"
 	"github.com/StevenZack/frontpage/views"
-
-	"github.com/StevenZack/fasthttp"
 	"github.com/StevenZack/frontpage/util"
 )
 
 type FrontPage struct {
-	r        *fasthttp.Router
-	vars     *Vars
+	Server   *mux.Server
+	Vars     *Vars
 	WsServer *WsServer
 	binder   *binder
 }
 
-func New(html string) *FrontPage {
+func New(html string, port int) *FrontPage {
 	fp := &FrontPage{
-		r:    fasthttp.NewRouter(),
-		vars: NewVars(),
+		Vars: NewVars(),
 	}
-	fp.binder = newBinder(fp.vars)
-	fp.WsServer = NewWsServer(fp.r.GetServer().Shutdown)
+	if port > 0 {
+		fp.Vars.Addr = ":" + strconv.Itoa(port)
+	}
+
+	fp.Server = mux.NewServer(fp.Vars.Addr)
+	fp.binder = newBinder(fp.Vars)
+	fp.WsServer = NewWsServer(fp.Server.Stop)
 
 	// handlers
 	fp.HandleFunc("/fp/ws", fp.WsServer.ws)
-	fp.HandleFunc("/fp/var.js", func(cx *fasthttp.RequestCtx) {
-		cx.SetJsHeader()
+	fp.HandleFunc("/fp/var.js", func(w http.ResponseWriter, Server *http.Request) {
+		mux.SetJsHeader(w)
 		t := template.New("var.js")
 		t.Parse(views.Str_var)
-		t.Execute(cx, fp.vars)
+		t.Execute(w, fp.Vars)
 	})
-	fp.HandleFunc("/fp/call/:funcName", fp.binder.handleCall)
+	fp.Server.HandleMultiReqs("/fp/call/", fp.binder.handleCall)
 	fp.HandleHtml("/", html)
 
 	return fp
 }
 
 func (f *FrontPage) HandleHtml(path, html string) {
-	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
+	f.Server.HandleFunc(path, func(w http.ResponseWriter, Server *http.Request) {
 		s, e := util.AddHead(html, `<script src="/fp/var.js" type="text/javascript"></script>`)
 		if e != nil {
-			cx.Error(e.Error(), fasthttp.StatusBadRequest)
+			http.Error(w, e.Error(), http.StatusBadRequest)
 			return
 		}
-		cx.WriteHTML(s)
+		mux.WriteHtml(w, s)
 	})
 }
 
@@ -57,48 +60,38 @@ func AddVarsJs(html string) (string, error) {
 	return s, e
 }
 
-func (f *FrontPage) HandleHtmlFunc(path string, fn func(cx *fasthttp.RequestCtx) string) {
-	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
-		s, e := util.AddHead(fn(cx), `<script src="/fp/var.js" type="text/javascript"></script>`)
+func (f *FrontPage) HandleHtmlFunc(path string, fn func(w http.ResponseWriter, Server *http.Request) string) {
+	f.Server.HandleFunc(path, func(w http.ResponseWriter, Server *http.Request) {
+		s, e := util.AddHead(fn(w, Server), `<script src="/fp/var.js" type="text/javascript"></script>`)
 		if e != nil {
-			cx.Error(e.Error(), fasthttp.StatusBadRequest)
+			http.Error(w, e.Error(), http.StatusBadRequest)
 			return
 		}
-		cx.WriteHTML(s)
+		mux.WriteHtml(w, s)
 	})
 }
 
 func (f *FrontPage) HandleJs(path, js string) {
-	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
-		cx.SetJsHeader()
-		cx.WriteString(js)
+	f.Server.HandleFunc(path, func(w http.ResponseWriter, Server *http.Request) {
+		mux.SetJsHeader(w)
+		w.Write([]byte(js))
 	})
 }
 
 func (f *FrontPage) HandleCss(path, css string) {
-	f.r.HandleFunc(path, func(cx *fasthttp.RequestCtx) {
-		cx.SetCssHeader()
-		cx.WriteString(css)
+	f.Server.HandleFunc(path, func(w http.ResponseWriter, Server *http.Request) {
+		mux.SetCssHeader(w)
+		w.Write([]byte(css))
 	})
 }
 
-func (f *FrontPage) HandleFunc(path string, handler func(cx *fasthttp.RequestCtx)) {
-	f.r.HandleFunc(path, handler)
+func (f *FrontPage) HandleFunc(path string, handler func(w http.ResponseWriter, Server *http.Request)) {
+	f.Server.HandleFunc(path, handler)
 }
 
 func (f *FrontPage) Run() error {
-	openurl.OpenApp("http://" + f.vars.Addr)
-	return f.run()
-}
-
-func (f *FrontPage) run() error {
-	fmt.Println("Listened on http://" + f.vars.Addr)
-	return f.r.ListenAndServe(f.vars.Addr)
-}
-
-func (f *FrontPage) RunBrowser() error {
-	openurl.Open("http://" + f.vars.Addr)
-	return f.run()
+	fmt.Println("Listened on http://" + f.Vars.Addr)
+	return f.Server.ListenAndServe()
 }
 
 func (f *FrontPage) Bind(v interface{}) {
@@ -107,8 +100,4 @@ func (f *FrontPage) Bind(v interface{}) {
 
 func (f *FrontPage) Eval(s string) {
 	f.WsServer.pub(s)
-}
-
-func (f *FrontPage) Router() *fasthttp.Router {
-	return f.r
 }

@@ -2,12 +2,13 @@ package frontpage
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
 
-	"github.com/StevenZack/fasthttp"
-	"github.com/StevenZack/frontpage/logx"
+	"github.com/gorilla/websocket"
+
 	"github.com/StevenZack/pubsub"
-	"github.com/StevenZack/websocket"
 )
 
 type WsServer struct {
@@ -18,7 +19,7 @@ type WsServer struct {
 }
 
 var (
-	upgrader = websocket.FastHTTPUpgrader{}
+	upgrader = websocket.Upgrader{}
 )
 
 func NewWsServer(shutdown func() error) *WsServer {
@@ -28,49 +29,50 @@ func NewWsServer(shutdown func() error) *WsServer {
 	}
 }
 
-func (w *WsServer) ws(cx *fasthttp.RequestCtx) {
-	e := upgrader.Upgrade(cx, func(c *websocket.Conn) {
-		defer c.Close()
-		ps := pubsub.NewPubSub()
-		go func() {
-			defer ps.UnSub()
-			defer func() {
-				w.ClientNum--
-				time.Sleep(time.Second * 3)
-				w.shutdownIfNeed()
-			}()
-			w.ClientNum++
+func ws(w http.ResponseWriter, r *http.Request) {
 
-			// read
-			for {
-				_, b, e := c.ReadMessage()
-				if e != nil {
-					logx.Error(e)
-					return
-				}
-				w.handleMsg(b)
-			}
-		}()
-
-		// write
-		ps.Sub(w.ChanID, func(v interface{}) {
-			if s, ok := v.(string); ok {
-				c.WriteMessage(websocket.TextMessage, []byte(s))
-				return
-			}
-
-			b, e := json.Marshal(v)
-			if e != nil {
-				logx.Error(e)
-				return
-			}
-			c.WriteMessage(websocket.TextMessage, b)
-		})
-	})
+}
+func (server *WsServer) ws(w http.ResponseWriter, r *http.Request) {
+	c, e := upgrader.Upgrade(w, r, nil)
 	if e != nil {
-		cx.Error(e.Error(), fasthttp.StatusBadRequest)
+		http.Error(w, e.Error(), http.StatusBadRequest)
 		return
 	}
+	defer c.Close()
+	ps := pubsub.NewPubSub()
+	go func() {
+		defer ps.UnSub()
+		defer func() {
+			server.ClientNum--
+			time.Sleep(time.Second * 3)
+			server.shutdownIfNeed()
+		}()
+		server.ClientNum++
+
+		// read
+		for {
+			_, b, e := c.ReadMessage()
+			if e != nil {
+				return
+			}
+			server.handleMsg(b)
+		}
+	}()
+
+	// write
+	ps.Sub(server.ChanID, func(v interface{}) {
+		if s, ok := v.(string); ok {
+			c.WriteMessage(websocket.TextMessage, []byte(s))
+			return
+		}
+
+		b, e := json.Marshal(v)
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		c.WriteMessage(websocket.TextMessage, b)
+	})
 }
 
 // shutdownIfNeed shutdown server if no client connected

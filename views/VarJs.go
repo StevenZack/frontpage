@@ -1,6 +1,6 @@
 package views
 
-var Str_var =`server='{{.Addr}}';
+var Str_VarJs =`server=location.href.split('/')[2];
 
 function connectWs(){
     var ws=new WebSocket('ws://'+server+'/fp/ws');

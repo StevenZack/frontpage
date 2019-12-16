@@ -1,4 +1,4 @@
-server='{{.Addr}}';
+server=location.href.split('/')[2];
 
 function connectWs(){
     var ws=new WebSocket('ws://'+server+'/fp/ws');

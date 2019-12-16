@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/StevenZack/mux"
-	"github.com/StevenZack/frontpage/views"
 	"github.com/StevenZack/frontpage/util"
+	"github.com/StevenZack/frontpage/views"
+	"github.com/StevenZack/mux"
 )
 
 type FrontPage struct {
@@ -35,7 +35,7 @@ func New(html string, port int) *FrontPage {
 	fp.HandleFunc("/fp/var.js", func(w http.ResponseWriter, Server *http.Request) {
 		mux.SetJsHeader(w)
 		t := template.New("var.js")
-		t.Parse(views.Str_var)
+		t.Parse(views.Str_VarJs)
 		t.Execute(w, fp.Vars)
 	})
 	fp.Server.HandleMultiReqs("/fp/call/", fp.binder.handleCall)

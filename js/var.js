@@ -18,7 +18,7 @@ function connectWs(){
 {{ range .Funcs}}
 function {{.Name}}({{range .Args}}{{.}},{{end}}){
     var xhr=new XMLHttpRequest();
-    xhr.open('POST','/fp/call/{{.Name}}',false);
+    xhr.open('POST','/fp/call/{{.Name}}',true);
     var body=[
         {{range .Args}}
         {{.}},

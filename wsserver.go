@@ -16,6 +16,7 @@ type WsServer struct {
 	ClientNum                      int
 	DisableExitWhenAllClientClosed bool
 	shutdown                       func() error
+	server                         *pubsub.Server
 }
 
 var (
@@ -26,6 +27,7 @@ func NewWsServer(shutdown func() error) *WsServer {
 	return &WsServer{
 		ChanID:   "ws",
 		shutdown: shutdown,
+		server:   pubsub.NewServer(),
 	}
 }
 
@@ -39,7 +41,7 @@ func (server *WsServer) ws(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer c.Close()
-	ps := pubsub.NewPubSub()
+	ps := pubsub.NewClient(server.server)
 	go func() {
 		defer ps.UnSub()
 		defer func() {
@@ -87,5 +89,5 @@ func (w *WsServer) handleMsg(b []byte) {
 }
 
 func (w *WsServer) pub(s string) {
-	pubsub.Pub(w.ChanID, s)
+	w.server.Pub(w.ChanID, s)
 }

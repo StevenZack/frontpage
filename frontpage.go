@@ -28,7 +28,7 @@ func New(html string, port int) *FrontPage {
 
 	fp.Server = mux.NewServer(fp.Vars.Addr)
 	fp.binder = newBinder(fp.Vars)
-	fp.WsServer = NewWsServer(fp.Server.Stop)
+	fp.WsServer = newWsServer(fp.Server.Stop)
 
 	// handlers
 	fp.HandleFunc("/fp/ws", fp.WsServer.ws)

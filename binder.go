@@ -31,7 +31,7 @@ func (b *binder) bind(v interface{}) {
 		panic("Bind():funcname '" + name + "' duplicated")
 	}
 
-	fn, e := NewFunc(v)
+	fn, e := newFunc(v)
 	if e != nil {
 		panic(e)
 	}

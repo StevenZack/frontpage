@@ -23,7 +23,7 @@ var (
 	upgrader = websocket.Upgrader{}
 )
 
-func NewWsServer(shutdown func() error) *WsServer {
+func newWsServer(shutdown func() error) *WsServer {
 	return &WsServer{
 		ChanID:   "ws",
 		shutdown: shutdown,

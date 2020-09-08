@@ -18,14 +18,14 @@ type Func struct {
 	inTypes []reflect.Type
 }
 
-func NewFunc(i interface{}) (*Func, error) {
+func newFunc(i interface{}) (*Func, error) {
 	fn := &Func{
 		i: i,
 	}
 	t := reflect.TypeOf(i)
 	v := reflect.ValueOf(i)
 	if t.Kind().String() != "func" {
-		return nil, errors.New("NewFunc(): i is not a function")
+		return nil, errors.New("newFunc(): i is not a function")
 	}
 
 	names := strings.Split(runtime.FuncForPC(v.Pointer()).Name(), ".")

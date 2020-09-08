@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"text/template"
 
+	"github.com/StevenZack/openurl"
+
 	"github.com/StevenZack/frontpage/util"
 	"github.com/StevenZack/frontpage/views"
 	"github.com/StevenZack/mux"
@@ -18,7 +20,7 @@ type FrontPage struct {
 	binder   *binder
 }
 
-func New(html string, port int) *FrontPage {
+func New(html []byte, port int) *FrontPage {
 	fp := &FrontPage{
 		Vars: NewVars(),
 	}
@@ -39,12 +41,12 @@ func New(html string, port int) *FrontPage {
 		t.Execute(w, fp.Vars)
 	})
 	fp.Server.HandleMultiReqs("/fp/call/", fp.binder.handleCall)
-	fp.HandleHtml("/", html)
+	fp.HandleHtml("/", string(html))
 
 	return fp
 }
 
-func (f *FrontPage) HandleHtml(path, html string) {
+func (f *FrontPage) HandleHtml(path string, html string) {
 	f.Server.HandleFunc(path, func(w http.ResponseWriter, Server *http.Request) {
 		s, e := util.AddHead(html, `<script src="/fp/var.js" type="text/javascript"></script>`)
 		if e != nil {
@@ -100,4 +102,12 @@ func (f *FrontPage) Bind(v interface{}) {
 
 func (f *FrontPage) Eval(s string) {
 	f.WsServer.pub(s)
+}
+
+func (f *FrontPage) Open() {
+	openurl.Open("http://" + f.Vars.Addr)
+}
+
+func (f *FrontPage) OpenApp() {
+	openurl.OpenApp("http://" + f.Vars.Addr)
 }
